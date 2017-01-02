@@ -70,9 +70,9 @@ module PassengerMemoryStatus
     # Check if Passenger is installed
     #
     def passenger_installed?
-      installed_path = 'which passenger_memory_status'
+      installed_path = `which passenger_memory_status`
       puts installed_path
-      return installed_path unless installed_path.blank?
+      return installed_path unless installed_path.empty?
     end
 
   end
