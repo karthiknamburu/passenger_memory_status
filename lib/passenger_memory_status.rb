@@ -8,15 +8,20 @@ module PassengerMemoryStatus
     #
     MEMORY_LIMIT = 500
 
-    def self.run()
-      new.bloated_passenger_process
+    def initialize(options = {})
+        @memory_limit = options[:memory] || MEMORY_LIMIT
+        @logger = Logger.new('passenger_memory_status.log')
+    end
+
+    def self.run(options = {})
+      new(options).bloated_passenger_process
     end
 
     # Find and kill the Bloated Passenger Process
     #
     def bloated_passenger_process
 
-      unless passenger_installed?
+      if passenger_installed?
 
         `passenger-memory-stats`.each_line do |process|
 
@@ -24,9 +29,12 @@ module PassengerMemoryStatus
 
             pid, pid_memory = getpid(process)
     
-            if pid_memory > MEMORY_LIMIT.to_i
-              puts "Found bloated process #{pid} with size #{pid_memory.to_s}"
+            if pid_memory > @memory_limit.to_i
+
+              @logger.info "Found bloated process #{pid} with size #{pid_memory.to_s}"
+
               sleep 8
+
               graceful(pid)
 
               if Process.running?(pid)
@@ -36,6 +44,8 @@ module PassengerMemoryStatus
             end
           end
         end
+      else
+        @logger.info "The Command `passenger-memory-stats` is not available"
       end
 
     end
@@ -49,14 +59,14 @@ module PassengerMemoryStatus
     # Graceful kill of passenger process
     #
     def graceful(pid)
-        puts "Killing Passenger-Process #{pid} gracefully"
+        @logger.info "Killing Passenger-Process #{pid} gracefully"
         Process.kill("SIGUSR1", pid)
     end
 
     # Forceful kill of the process
     #
     def kill(pid)
-        puts "Killing Passenger-Process #{pid} forcefully"
+        @logger.info "Killing Passenger-Process #{pid} forcefully"
         Process.kill("TERM", pid)
     end
 
@@ -71,8 +81,7 @@ module PassengerMemoryStatus
     #
     def passenger_installed?
       installed_path = `which passenger_memory_status`
-      puts installed_path
-      return installed_path unless installed_path.empty?
+      return true unless installed_path.empty?
     end
 
   end
