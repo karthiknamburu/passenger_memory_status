@@ -21,8 +21,9 @@ Or install it yourself as:
     $ gem install passenger_memory_status
 
 ## Usage
+The Default MEMORY_LIMIT is 500MB
 
-PassengerMemoryStatus::MemoryStatus.run()
+PassengerMemoryStatus::MemoryStatus.run({:memory =>"150"})
 
 currently the default memory is 500MB.If the passenger process memory increases more than default memory the process will be killed.
 
